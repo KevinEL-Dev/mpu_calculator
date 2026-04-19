@@ -5,7 +5,9 @@ mod database;
 async fn main() {
 
     if !database::database_exists().expect("Failed to check database exsistence"){
-        println!("database does not exist");
+        // create the database
+        println!("creating database...");
+        database::init_database();
     }
 
     let app = Router::new().route("/",get(views::hello_world));
