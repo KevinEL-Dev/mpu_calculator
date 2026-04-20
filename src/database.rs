@@ -3,17 +3,13 @@ use std::path::Path;
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
-// check if database has been created
-//
-// if not create database and all necessary tables
-// a way to check if the database file already exists
+use sqlx::{Connection, SqliteConnection};
 
 
 pub fn database_exists() -> Option<bool> {
     let fname = "/ppmc.sqlite3";
     if let Some(proj_dirs) = ProjectDirs::from("","","ppmc"){
         let data_dir = proj_dirs.data_dir().to_str().unwrap();
-        println!("{data_dir}");
         let path = Path::new(&(data_dir.to_owned() + fname)).exists();
         if path {
             return Some(true);
@@ -30,13 +26,13 @@ pub fn get_database_path() -> Option<String> {
     }
     None
 }
-pub fn init_database() -> Option<bool> {
+pub async fn init_database() -> anyhow::Result<()> {
     let fname = "/ppmc.sqlite3";
     let mut path = get_database_path().expect("Failed to get database path");
     fs::create_dir_all(path.clone()).unwrap();
     path += fname;
     File::create(path.clone()).unwrap();
-    let connection = sqlite::open(path).unwrap();
+    let mut conn = SqliteConnection::connect(&path).await?;
     let meal_table_create = "
         CREATE TABLE meal (
             id INTEGER PRIMARY KEY,
@@ -81,11 +77,11 @@ pub fn init_database() -> Option<bool> {
     ";
 
     let queries = vec![meal_table_create,measurement_table_create,source_table_create,ingredient_table_create,meal_to_ingredient_table_create];
-    let current_table = vec!["meal table","measuremnt table","source table","ingredient table","mti table"];
+    let current_table = ["meal table","measuremnt table","source table","ingredient table","mti table"];
     let mut iterator = current_table.iter();
     for query in queries {
-        connection.execute(query).unwrap();
+        sqlx::raw_sql(query).execute(&mut conn).await?;
         println!("{} created successfully",iterator.next().unwrap())
     }
-    Some(true)
+    Ok(())
 }
