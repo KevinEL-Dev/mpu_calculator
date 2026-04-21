@@ -137,8 +137,22 @@ pub async fn get_ingredient_price(State(state): State<AppState>, Query(params): 
 //
 // return a list of potential sources they may be interested in
 pub async fn search_sources(State(state): State<AppState>, Query(params): Query<SearchSourcesParam>) -> Json<Vec< FoundSources >>{
-    let stream = sqlx::query_as::<_, FoundSources>("SELECT id, name, brand FROM source WHERE name=?")
+
+    let mut sources: Vec<FoundSources> = Vec::new();
+    let rows = sqlx::query("SELECT id, name, brand FROM source WHERE name LIKE '%' || $1 || '%'")
         .bind(params.pattern)
         .fetch_all(&state.pool).await.unwrap();
-    Json(stream)
+
+    for row in rows {
+        let id: i64 = row.try_get("id").unwrap();
+        let name: String = row.try_get("name").unwrap();
+        let brand: String = row.try_get("brand").unwrap();
+        let source = FoundSources{
+            id,
+            name,
+            brand,
+        };
+        sources.push(source);
+    }
+    Json(sources)
 }
