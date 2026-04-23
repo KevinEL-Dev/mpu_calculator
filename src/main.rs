@@ -6,6 +6,7 @@ use sqlx::{
     Pool,
     Sqlite
 };
+use tower_http::services::ServeDir;
 mod views;
 mod database;
 mod handlers;
@@ -23,6 +24,7 @@ async fn main() {
         pool
     };
     let app = Router::new()
+        .nest_service("/static", ServeDir::new("static"))
         .route("/",get(views::hello_world))
         .route("/create_source",post(handlers::create_source))
         .route("/create_measurement_unit",post(handlers::create_measurement_unit))
