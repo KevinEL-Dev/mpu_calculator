@@ -1,5 +1,8 @@
 // this will be where we create operations for getting and posting information
-use axum::extract::{Json, State, Query};
+use axum::extract::{Json, State, Query,Form};
+use axum::{
+    response::{IntoResponse, Redirect, Response,Html}
+};
 use serde::{Serialize,Deserialize};
 use serde_json::{Value,json};
 use std::collections::HashMap;
@@ -51,6 +54,15 @@ pub struct CreateMealToIngredient {
     ingredient_id: i64
 }
 #[derive(Debug,Deserialize)]
+pub struct CreateSourceBak {
+    name: String,
+    brand: String,
+    price: f64,
+    servings_per_container: f64,
+    serving_size: f64,
+    measurement_unit_id: i64,
+}
+#[derive(Debug,Deserialize)]
 pub struct CreateSource {
     name: String,
     brand: String,
@@ -63,15 +75,16 @@ pub struct CreateSource {
 pub struct CreateMeasurementUnit {
     name: String,
 }
-pub async fn create_source(State(state): State<AppState>,Json(payload): Json<CreateSource>) {
+pub async fn create_source(State(state): State<AppState>,Form(source_form): Form<CreateSource>) -> Html<&'static str> {
     sqlx::query("INSERT INTO source (name, brand, price, servings_per_container,serving_size,measurement_unit_id) Values ($1, $2, $3, $4, $5, $6)")
-        .bind(payload.name)
-        .bind(payload.brand)
-        .bind(payload.price)
-        .bind(payload.servings_per_container)
-        .bind(payload.serving_size)
-        .bind(payload.measurement_unit_id)
+        .bind(source_form.name)
+        .bind(source_form.brand)
+        .bind(source_form.price)
+        .bind(source_form.servings_per_container)
+        .bind(source_form.serving_size)
+        .bind(source_form.measurement_unit_id)
         .execute(&state.pool).await.unwrap();
+    Html("<p>New source added!</p>")
 }
 
 pub async fn create_measurement_unit(State(state): State<AppState>,Json(payload): Json<CreateMeasurementUnit>){
