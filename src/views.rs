@@ -37,7 +37,8 @@ pub async fn hello_world() -> Markup {
             br;
             label for="measurement_unit" {"Measurement unit"}
             br;
-            input type="number" step="1" id="measurement_unit_id" name="measurement_unit_id";
+            input class="form-control" type="search" list="measurements" name="pattern" hx-get="/search_measurement_units" hx-params="*" hx-trigger="input changed delay:500ms, keyup[key=='Enter'], load" hx-target="#measurements" {}
+            datalist id="measurements" {}
             br;
             input type="submit" value="Submit";
         }
@@ -53,3 +54,4 @@ pub async fn hello_world() -> Markup {
         div id="measurement_unit_result";
     }
 }
+pub fn render_measurement_unit_search()

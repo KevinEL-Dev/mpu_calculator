@@ -27,6 +27,10 @@ pub struct SearchSourcesParam {
     pattern: String
 }
 #[derive(Debug,Deserialize)]
+pub struct SearchMeasurementUnitParam {
+    pattern: String
+}
+#[derive(Debug,Deserialize)]
 pub struct CreateIngredient {
     name: String,
     source_id: i64,
@@ -61,10 +65,6 @@ pub struct CreateSource {
     servings_per_container: f64,
     serving_size: f64,
     measurement_unit_id: i64,
-}
-#[derive(Debug,Deserialize)]
-pub struct CreateMeasurementUnitBak {
-    name: String,
 }
 #[derive(Debug,Deserialize)]
 pub struct CreateMeasurementUnit {
@@ -150,4 +150,15 @@ pub async fn search_sources(State(state): State<AppState>, Query(params): Query<
         .bind(params.pattern)
         .fetch_all(&state.pool).await.unwrap();
     Json(sources)
+}
+pub async fn search_measurement_units(State(state): State<AppState>, Query(params): Query<SearchMeasurementUnitParam>) -> String{
+    let sources = sqlx::query_as::<_, FoundSources>("SELECT id, name FROM measurement_unit WHERE name LIKE '%' || $1 || '%'")
+        .bind(params.pattern)
+        .fetch_all(&state.pool).await.unwrap();
+    let mut res = String::new();
+    for source in sources {
+        let option = format!("option value=\"{}\"; ",source.name);
+        res += &option;
+    }
+    res
 }

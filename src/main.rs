@@ -34,6 +34,7 @@ async fn main() {
         .route("/get_meal_price",get(handlers::get_meal_price))
         .route("/get_ingredient_price",get(handlers::get_ingredient_price))
         .route("/search_sources",get(handlers::search_sources))
+        .route("/search_measurement_units",get(handlers::search_measurement_units))
         .with_state(state);
 
     let listner = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
