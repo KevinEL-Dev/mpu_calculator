@@ -54,7 +54,7 @@ pub struct CreateMealToIngredient {
     ingredient_id: i64
 }
 #[derive(Debug,Deserialize)]
-pub struct CreateSourceBak {
+pub struct CreateSource {
     name: String,
     brand: String,
     price: f64,
@@ -63,13 +63,8 @@ pub struct CreateSourceBak {
     measurement_unit_id: i64,
 }
 #[derive(Debug,Deserialize)]
-pub struct CreateSource {
+pub struct CreateMeasurementUnitBak {
     name: String,
-    brand: String,
-    price: f64,
-    servings_per_container: f64,
-    serving_size: f64,
-    measurement_unit_id: i64,
 }
 #[derive(Debug,Deserialize)]
 pub struct CreateMeasurementUnit {
@@ -87,10 +82,11 @@ pub async fn create_source(State(state): State<AppState>,Form(source_form): Form
     Html("<p>New source added!</p>")
 }
 
-pub async fn create_measurement_unit(State(state): State<AppState>,Json(payload): Json<CreateMeasurementUnit>){
+pub async fn create_measurement_unit(State(state): State<AppState>,Form(form): Form<CreateMeasurementUnit>) -> Html<&'static str>{
     sqlx::query("INSERT INTO measurement_unit (name) Values ($1)")
-        .bind(payload.name)
+        .bind(form.name)
         .execute(&state.pool).await.unwrap();
+    Html("<p>New Measurement Unit added!</p>")
 }
 pub async fn create_meal(State(state): State<AppState>,Json(payload): Json<CreateMeal>){
     sqlx::query("INSERT INTO meal (name) Values ($1)")

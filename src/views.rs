@@ -42,5 +42,14 @@ pub async fn hello_world() -> Markup {
             input type="submit" value="Submit";
         }
         div id="result";
+        br;
+        form hx-post="/create_measurement_unit" hx-target="#measurement_unit_result"{
+            label for="name" {"Measurement Unit Name"}
+            br;
+            input type="text" id="name" name="name";
+            br;
+            input type="submit" value="Submit";
+        }
+        div id="measurement_unit_result";
     }
 }
