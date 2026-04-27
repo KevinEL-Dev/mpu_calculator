@@ -75,9 +75,16 @@ pub async fn init_database() -> anyhow::Result<()> {
             ingredient_id INT REFERENCES ingredient(id) NOT NULL
         );
     ";
+    let user_table_create = "
+        CREATE TABLE user (
+            id INTEGER PRIMARY KEY,
+            username TEXT NOT NULL,
+            password TEXT NOT NULL
+        );
+    ";
 
-    let queries = vec![meal_table_create,measurement_table_create,source_table_create,ingredient_table_create,meal_to_ingredient_table_create];
-    let current_table = ["meal table","measuremnt table","source table","ingredient table","mti table"];
+    let queries = vec![meal_table_create,measurement_table_create,source_table_create,ingredient_table_create,meal_to_ingredient_table_create,user_table_create];
+    let current_table = ["meal table","measuremnt table","source table","ingredient table","mti table","user table"];
     let mut iterator = current_table.iter();
     for query in queries {
         sqlx::raw_sql(query).execute(&mut conn).await?;
