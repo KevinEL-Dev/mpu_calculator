@@ -33,6 +33,8 @@ async fn main() {
         .route("/search_sources",get(handlers::search_sources))
         .route("/search_measurement_units",get(handlers::search_measurement_units))
         .route("/search_meals",get(handlers::search_meals))
+        .route("/register",get(views::get_register))
+        .route("/create_user",post(handlers::post_register))
         .with_state(state);
 
     let listner = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();

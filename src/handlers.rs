@@ -1,7 +1,8 @@
 // this will be where we create operations for getting and posting information
 use axum::extract::{Json, State, Query,Form};
 use axum::{
-    response::{IntoResponse, Redirect, Response,Html}
+    response::{IntoResponse, Redirect, Response,Html},
+    http::{StatusCode,HeaderMap,Uri,header}
 };
 use serde::{Serialize,Deserialize};
 use serde_json::{Value,json};
@@ -80,6 +81,11 @@ pub struct CreateSource {
     servings_per_container: f64,
     serving_size: f64,
     measurement_unit_name: String,
+}
+#[derive(Debug,Deserialize)]
+pub struct RegisterUser {
+    username: String,
+    password: String
 }
 #[derive(Debug,Deserialize)]
 pub struct CreateMeasurementUnit {
@@ -292,4 +298,24 @@ pub async fn search_one_measurement_unit(pool: &Pool<Sqlite>, pattern: String) -
         .bind(pattern)
         .fetch_one(pool).await.unwrap();
     measurement.id
+}
+pub async fn post_register (State(state): State<AppState>, Form(register_form): Form<RegisterUser>) -> impl IntoResponse{
+    // check first if a user already exist
+    if let Ok(user) = sqlx::query("SELECT username FROM user WHERE username LIKE '%' || $1 || '%'")
+        .bind(register_form.username)
+        .fetch_one(&state.pool).await {
+        println!("username found");
+        return (
+                StatusCode::NOT_FOUND,
+                [(header::CONTENT_TYPE, "text/plain")],
+                "This username is already taken"
+        )
+    }
+    // implemet later user creation
+        println!("username not found");
+    (
+        StatusCode::ACCEPTED,
+        [(header::CONTENT_TYPE, "text/plain")],
+        "User name is not taken"
+    )
 }

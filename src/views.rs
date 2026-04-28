@@ -65,6 +65,24 @@ pub async fn hello_world() -> Markup {
         div id="meal_result" {}
     }
 }
+pub async fn get_register() -> Markup {
+    html! {
+        (DOCTYPE)
+        h1 {"register"}
+        form hx-post="/create_user" hx-target="#result" hx-swap="innerHTML"{
+            label for="username" {"Username"}
+            br;
+            input type="text" id="username" name="username";
+            br;
+            label for="password" {"Password"}
+            br;
+            input type="password" id="password" name="password";
+            br;
+            input type="submit" value="Submit";
+        }
+        div id="result" {}
+    }
+}
 pub fn render_measurement_unit_search(output: &str) -> Markup {
     html!{
         (PreEscaped(output))
