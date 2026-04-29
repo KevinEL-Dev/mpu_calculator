@@ -299,12 +299,11 @@ pub async fn search_one_measurement_unit(pool: &Pool<Sqlite>, pattern: String) -
         .fetch_one(pool).await.unwrap();
     measurement.id
 }
-pub async fn post_register (State(state): State<AppState>, Form(register_form): Form<RegisterUser>) -> impl IntoResponse{
+pub async fn register (State(state): State<AppState>, Form(register_form): Form<RegisterUser>) -> impl IntoResponse{
     // check first if a user already exist
     if let Ok(user) = sqlx::query("SELECT username FROM user WHERE username LIKE '%' || $1 || '%'")
         .bind(register_form.username)
         .fetch_one(&state.pool).await {
-        println!("username found");
         return (
                 StatusCode::NOT_FOUND,
                 [(header::CONTENT_TYPE, "text/plain")],
