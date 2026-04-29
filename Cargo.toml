@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.102"
 axum = "0.8.9"
+bcrypt = "0.19.0"
 directories = "6.0.0"
 futures-util = "0.3.32"
 maud = { version = "0.27.0", features = ["axum"] }

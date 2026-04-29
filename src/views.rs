@@ -70,7 +70,7 @@ pub async fn get_register() -> Markup {
         (DOCTYPE)
         h1 {"register"}
         script src="/static/htmx.min.js" {}
-        form hx-post="/create_user" hx-target="#result" hx-swap="innerHTML"{
+        form hx-post="/register" hx-target="#result" hx-swap="innerHTML"{
             label for="username" {"Username"}
             br;
             input type="text" id="username" name="username";

@@ -4,6 +4,7 @@ use axum::{
     response::{IntoResponse, Redirect, Response,Html},
     http::{StatusCode,HeaderMap,Uri,header}
 };
+use bcrypt::{hash, verify};
 use serde::{Serialize,Deserialize};
 use serde_json::{Value,json};
 use std::collections::HashMap;
@@ -91,6 +92,8 @@ pub struct RegisterUser {
 pub struct CreateMeasurementUnit {
     name: String,
 }
+static MIN_PASSWORD_LEN: usize = 14;
+
 pub async fn create_source(State(state): State<AppState>,Form(source_form): Form<CreateSource>) -> Html<&'static str> {
     let measurement_unit = sqlx::query_as::<_, FoundMeasurements>("SELECT id, name FROM measurement_unit WHERE name LIKE '%' || $1 || '%'")
         .bind(source_form.measurement_unit_name)
@@ -130,7 +133,6 @@ pub async fn create_ingredient(State(state): State<AppState>,Form(payload): Form
         .execute(&state.pool).await.unwrap();
     // search for created ingredient and get the id
     let new_id = result.last_insert_rowid();
-    println!("new_id is {}", new_id);
     // then create the mti mapping, passing payload.meal_id and new_ingredient.id
     create_meal_to_ingredient(&state.pool,payload.meal_id,new_id).await;
 }
@@ -302,19 +304,33 @@ pub async fn search_one_measurement_unit(pool: &Pool<Sqlite>, pattern: String) -
 pub async fn register (State(state): State<AppState>, Form(register_form): Form<RegisterUser>) -> impl IntoResponse{
     // check first if a user already exist
     if let Ok(user) = sqlx::query("SELECT username FROM user WHERE username LIKE '%' || $1 || '%'")
-        .bind(register_form.username)
+        .bind(register_form.username.clone())
         .fetch_one(&state.pool).await {
         return (
                 StatusCode::NOT_FOUND,
                 [(header::CONTENT_TYPE, "text/plain")],
                 "This username is already taken"
         )
+    }else{
+        if register_form.password.len() < MIN_PASSWORD_LEN {
+            return (
+                StatusCode::BAD_REQUEST,
+                [(header::CONTENT_TYPE, "text/plain")],
+                "Password does not meet complexity requirements: minimum is 14 chars."
+            )
+        }
+        // hash the users password
+        let hashed_password = hash(register_form.password,10).unwrap();
+
+        sqlx::query("INSERT INTO user (username, password) Values ($1, $2)")
+            .bind(register_form.username)
+            .bind(hashed_password)
+            .execute(&state.pool).await.unwrap();
+        (
+            StatusCode::ACCEPTED,
+            [(header::CONTENT_TYPE, "text/plain")],
+            ""
+        )
+
     }
-    // implemet later user creation
-        println!("username not found");
-    (
-        StatusCode::ACCEPTED,
-        [(header::CONTENT_TYPE, "text/plain")],
-        "User name is not taken"
-    )
 }
