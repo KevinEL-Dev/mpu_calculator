@@ -84,6 +84,26 @@ pub async fn get_register() -> Markup {
         div id="result" {}
     }
 }
+pub async fn login() -> Markup {
+
+    html! {
+        (DOCTYPE)
+        h1 {"login"}
+        script src="/static/htmx.min.js" {}
+        form hx-post="/login" hx-target="#result" hx-swap="innerHTML"{
+            label for="username" {"Username"}
+            br;
+            input type="text" id="username" name="username";
+            br;
+            label for="password" {"Password"}
+            br;
+            input type="password" id="password" name="password";
+            br;
+            input type="submit" value="Submit";
+        }
+        div id="result" {}
+    }
+}
 pub fn render_measurement_unit_search(output: &str) -> Markup {
     html!{
         (PreEscaped(output))

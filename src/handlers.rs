@@ -4,7 +4,7 @@ use axum::{
     response::{IntoResponse, Redirect, Response,Html},
     http::{StatusCode,HeaderMap,Uri,header}
 };
-use bcrypt::{hash, verify};
+use password_auth::{generate_hash};
 use serde::{Serialize,Deserialize};
 use serde_json::{Value,json};
 use std::collections::HashMap;
@@ -82,6 +82,10 @@ pub struct CreateSource {
     servings_per_container: f64,
     serving_size: f64,
     measurement_unit_name: String,
+}
+pub struct Credientals {
+    username: String,
+    password: String,
 }
 #[derive(Debug,Deserialize)]
 pub struct RegisterUser {
@@ -320,7 +324,7 @@ pub async fn register (State(state): State<AppState>, Form(register_form): Form<
             )
         }
         // hash the users password
-        let hashed_password = hash(register_form.password,10).unwrap();
+        let hashed_password = generate_hash(register_form.password);
 
         sqlx::query("INSERT INTO user (username, password) Values ($1, $2)")
             .bind(register_form.username)
@@ -333,4 +337,7 @@ pub async fn register (State(state): State<AppState>, Form(register_form): Form<
         )
 
     }
+}
+pub async fn login(State(state): State<AppState>, Form(credentials): Form<Credientals> ) -> impl IntoResponse {
+    todo!().into_response()
 }
