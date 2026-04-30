@@ -329,7 +329,7 @@ pub async fn register (State(state): State<AppState>, Form(register_form): Form<
         (
             StatusCode::ACCEPTED,
             [(header::CONTENT_TYPE, "text/plain")],
-            ""
+            "User created"
         )
 
     }
