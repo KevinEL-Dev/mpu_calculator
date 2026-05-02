@@ -10,11 +10,15 @@ use serde::Deserialize;
 
 use crate::users::{AuthSession,Credentials};
 
-pub struct NextUrl {
-    next: Option<String>,
-}
+use crate::views::{get_login};
 
-pub fn router() -> Router<()> {
+// pub struct NextUrl {
+//     next: Option<String>,
+// }
+
+use crate::web::AppState;
+
+pub fn router() -> Router<AppState> {
     Router::new()
         .route("/login",post(self::post::login))
         .route("/login",get(self::get::login))
@@ -34,11 +38,11 @@ mod post {
             Ok(None) => {
                 messages.error("Invalid credentials");
 
-                let mut login_url = "/login".to_string();
-                if let Some(next) = creds.next {
-                    login_url = format!("{login_url}?next={next}");
-                };
-                return Redirect::to(&login_url).into_response();
+                // let mut login_url = "/login".to_string();
+                // if let Some(next) = creds.next {
+                //     login_url = format!("{login_url}?next={next}");
+                // };
+                return Redirect::to("/login").into_response();
             }
 
             Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
@@ -51,27 +55,21 @@ mod post {
 
         messages.success(format!("Successfully logged in as {}",user.username));
 
-        if let Some(ref next) = creds.next {
-            Redirect::to(next)
-        }else {
-            Redirect::to("/")
-        }
-        .into_response()
+        Redirect::to("/").into_response()
     }
 }
 mod get {
     use super::*;
         
     pub async fn login(
-        messages: Messages,
-        Query(NextUrl {next}): Query<NextUrl>,
-    ) -> Html<String> {
-        Html(views::login.into_string)
+    ) -> impl IntoResponse {
+        println!("getting login page");
+        Html(get_login().await.into_string()).into_response()
     }
 
     pub async fn logout(auth_session: AuthSession) -> impl IntoResponse {
         match auth_session.logout().await {
-            Ok(_) => Redirect::to("login").into_response(),
+            Ok(_) => Redirect::to("/login").into_response(),
             Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
         }
     }

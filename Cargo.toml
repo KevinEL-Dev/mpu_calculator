@@ -5,8 +5,8 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.102"
-axum = "0.8.9"
-axum-login = { version="0.18.0", default-features=false, features=["require-builder"],git = "https://github.com/maxcountryman/axum-login.git"}
+axum = "0.8.1"
+axum-login = { path = "../../axum-login/axum-login"}
 axum-messages = "0.8.0"
 bcrypt = "0.19.0"
 directories = "6.0.0"
@@ -15,11 +15,11 @@ maud = { version = "0.27.0", features = ["axum"] }
 password-auth = "1.0.0"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
-sqlx = { version = "0.8.6", features = ["runtime-tokio", "sqlite"] }
+sqlx = { version = "0.8.6", features = ["runtime-tokio", "sqlite", "time"] }
 thiserror = "2.0.18"
 time = "0.3.47"
-tokio = { version = "1.52.1", features = ["full", "macros", "rt-multi-thread"] }
+tokio = { version = "1.52.1", features = ["full", "macros", "rt-multi-thread","signal"] }
 tower-http = { version = "0.6.8", features = ["fs"] }
-tower-sessions = { version = "0.15.0", default-features = false, features = ["signed"] }
+tower-sessions = { version = "0.14.0", default-features = false, features = ["signed"] }
 tower-sessions-sqlx-store = { version = "0.15.0", features = ["sqlite"] }
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }

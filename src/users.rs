@@ -38,7 +38,7 @@ impl AuthUser for User {
 pub struct Credentials {
     pub username: String,
     pub password: String,
-    pub next: Option<String>,
+    // pub next: Option<String>,
 }
 
 
@@ -99,4 +99,4 @@ impl AuthnBackend for Backend {
 }
 
 // type allias for convenience. what is a type alias??
-pub type AuthSession = axum_login::AuthUser<Backend>;
+pub type AuthSession = axum_login::AuthSession<Backend>;

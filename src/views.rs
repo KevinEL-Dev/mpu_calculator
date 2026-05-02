@@ -84,7 +84,7 @@ pub async fn get_register() -> Markup {
         div id="result" {}
     }
 }
-pub async fn login() -> Markup {
+pub async fn get_login() -> Markup {
 
     html! {
         (DOCTYPE)

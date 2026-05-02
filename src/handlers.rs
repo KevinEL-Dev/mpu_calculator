@@ -15,10 +15,10 @@ use sqlx::{
     Pool,
     Sqlite
 };
-#[derive(Debug,Clone)]
-pub struct AppState{
-    pub pool: Pool<Sqlite>
-}
+use crate::web::AppState;
+// pub struct AppState{
+//     pub db: Pool<Sqlite>
+// }
 #[derive(sqlx::FromRow,Serialize)]
 pub struct FoundSources {
     id: i64,
@@ -140,19 +140,19 @@ pub async fn create_ingredient(State(state): State<AppState>,Form(payload): Form
     // then create the mti mapping, passing payload.meal_id and new_ingredient.id
     create_meal_to_ingredient(&state.pool,payload.meal_id,new_id).await;
 }
-pub async fn create_meal_to_ingredient(pool: &Pool<Sqlite>,meal_id: i64,ingredient_id: i64){
+pub async fn create_meal_to_ingredient(db: &Pool<Sqlite>,meal_id: i64,ingredient_id: i64){
     sqlx::query("INSERT INTO meal_to_ingredient (meal_id, ingredient_id) Values ($1, $2)")
         .bind(meal_id)
         .bind(ingredient_id)
-        .execute(pool).await.unwrap();
+        .execute(db).await.unwrap();
 }
 
-pub async fn get_meal_price(pool: &Pool<Sqlite>,meal_id: i64) -> f64{
+pub async fn get_meal_price(db: &Pool<Sqlite>,meal_id: i64) -> f64{
 
     let mut ingredient_ids = vec![];
     let mut rows = sqlx::query("SELECT ingredient_id FROM meal_to_ingredient WHERE meal_id=?")
         .bind(meal_id)
-        .fetch(pool);
+        .fetch(db);
 
     while let Some(row) = rows.try_next().await.unwrap() {
         let ingredient_id: i64 = row.try_get("ingredient_id").unwrap();
@@ -163,7 +163,7 @@ pub async fn get_meal_price(pool: &Pool<Sqlite>,meal_id: i64) -> f64{
     for id in ingredient_ids {
         let mut rows = sqlx::query("SELECT price FROM ingredient WHERE id=?")
             .bind(id)
-            .fetch(pool);
+            .fetch(db);
         while let Some(row) = rows.try_next().await.unwrap() {
             let price: f64 = row.try_get("price").unwrap();
             prices += price;
@@ -171,10 +171,10 @@ pub async fn get_meal_price(pool: &Pool<Sqlite>,meal_id: i64) -> f64{
     }
     prices
 }
-pub async fn get_ingredient_price(pool: &Pool<Sqlite>, source_id: i64, amount: i64) -> f64{
+pub async fn get_ingredient_price(db: &Pool<Sqlite>, source_id: i64, amount: i64) -> f64{
     let row: (f64,f64) = sqlx::query_as("SELECT price, total_weight_of_container FROM source WHERE id=?")
         .bind(source_id)
-        .fetch_one(pool).await.unwrap();
+        .fetch_one(db).await.unwrap();
     (row.0 / row.1 ) * (amount as f64)
 }
 // ### get request that searches for sources get_source
@@ -205,12 +205,12 @@ pub async fn search_measurement_units(State(state): State<AppState>, Query(param
     }
     Html(render_measurement_unit_search(&res).into_string())
 }
-pub async fn get_ingredients_for_meal(pool: &Pool<Sqlite>,meal_id: i64) -> Vec<(String, f64)>{
+pub async fn get_ingredients_for_meal(db: &Pool<Sqlite>,meal_id: i64) -> Vec<(String, f64)>{
 
     let mut ingredient_ids = vec![];
     let mut rows = sqlx::query("SELECT ingredient_id FROM meal_to_ingredient WHERE meal_id=?")
         .bind(meal_id)
-        .fetch(pool);
+        .fetch(db);
 
     while let Some(row) = rows.try_next().await.unwrap() {
         let ingredient_id: i64 = row.try_get("ingredient_id").unwrap();
@@ -221,7 +221,7 @@ pub async fn get_ingredients_for_meal(pool: &Pool<Sqlite>,meal_id: i64) -> Vec<(
     for id in ingredient_ids {
         let mut rows = sqlx::query("SELECT name, price FROM ingredient WHERE id=?")
             .bind(id)
-            .fetch(pool);
+            .fetch(db);
         while let Some(row) = rows.try_next().await.unwrap() {
             let price: f64 = row.try_get("price").unwrap();
             let name: String = row.try_get("name").unwrap();
@@ -291,18 +291,18 @@ pub async fn search_meals(State(state): State<AppState>, Query(params): Query<Se
     }
     Html(render_meal_search(&res).into_string())
 }
-pub async fn search_one_source(pool: &Pool<Sqlite>, pattern: String) -> i64{
+pub async fn search_one_source(db: &Pool<Sqlite>, pattern: String) -> i64{
 
     let sources = sqlx::query_as::<_, FoundSources>("SELECT id, name, brand FROM source WHERE name LIKE '%' || $1 || '%'")
         .bind(pattern)
-        .fetch_one(pool).await.unwrap();
+        .fetch_one(db).await.unwrap();
     sources.id
 }
-pub async fn search_one_measurement_unit(pool: &Pool<Sqlite>, pattern: String) -> i64{
+pub async fn search_one_measurement_unit(db: &Pool<Sqlite>, pattern: String) -> i64{
 
     let measurement = sqlx::query_as::<_, FoundMeasurements>("SELECT id, name FROM measurement_unit WHERE name LIKE '%' || $1 || '%'")
         .bind(pattern)
-        .fetch_one(pool).await.unwrap();
+        .fetch_one(db).await.unwrap();
     measurement.id
 }
 pub async fn register (State(state): State<AppState>, Form(register_form): Form<RegisterUser>) -> impl IntoResponse{
@@ -337,7 +337,4 @@ pub async fn register (State(state): State<AppState>, Form(register_form): Form<
         )
 
     }
-}
-pub async fn login(State(state): State<AppState>, Form(credentials): Form<Credientals> ) -> impl IntoResponse {
-    todo!().into_response()
 }

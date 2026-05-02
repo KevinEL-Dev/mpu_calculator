@@ -20,15 +20,18 @@ use crate::{
     users::Backend,
     web::{auth,protected},
     database::{database_exists,init_database,get_database_path},
-    handlers::AppState
 };
 
 // mod views;
 // mod database;
 // mod handlers;
-
+#[derive(Clone)]
 pub struct App { 
-    db: SqlitePool,
+    pub db: SqlitePool,
+}
+#[derive(Clone)]
+pub struct AppState {
+    pub pool: SqlitePool,
 }
 
 
@@ -75,10 +78,16 @@ impl App {
         let backend = Backend::new(self.db);
         let auth_layer = AuthManagerLayerBuilder::new(backend, session_layer).build();
 
+
+        let path = get_database_path().unwrap() +  "/ppmc.sqlite3";
+        let pool = Pool::<Sqlite>::connect(&path).await.unwrap();
+        let state = AppState{
+            pool
+        };
         // follow axum_login format
         let app = protected::router()
-            .route_layer(require_login)
             .merge(auth::router())
+            .route_layer(require_login)
             .layer(MessagesManagerLayer)
             .layer(auth_layer)
             .nest_service("/static", ServeDir::new("static"))
@@ -102,9 +111,16 @@ async fn shutdown_signal(deletion_task_abort_handle: AbortHandle) {
             .expect("failed to install Ctrl+C handler");
     };
 
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+    };
+
     #[cfg(not(unix))]
     let terminate = std::future::pending::<()>();
-
     tokio::select! {
         _ = ctrl_c => { deletion_task_abort_handle.abort() },
         _ = terminate => { deletion_task_abort_handle.abort() },

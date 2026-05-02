@@ -9,8 +9,9 @@ use axum_messages::{Message, Messages};
 
 use crate::views::{hello_world};
 use crate::users::AuthSession;
+use crate::web::AppState;
 
-pub fn router() -> Router<()> {
+pub fn router() -> Router<AppState> {
     Router::new().route("/", get(self::get::protected))
 }
 
