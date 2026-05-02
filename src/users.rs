@@ -38,6 +38,7 @@ impl AuthUser for User {
 pub struct Credentials {
     pub username: String,
     pub password: String,
+    pub next: Option<String>,
 }
 
 
@@ -60,7 +61,7 @@ pub enum Error {
     Sqlx(#[from] sqlx::Error),
 
     #[error(transparent)]
-    TaskJoin(#[from] task::JoinErorr),
+    TaskJoin(#[from] task::JoinError),
 }
 
 
@@ -85,7 +86,7 @@ impl AuthnBackend for Backend {
         .await?
     }
 
-    async fn get_user(&self, user_id: &UserId<Self>) -> Result<Option<Self::User>, Self::Errorr> {
+    async fn get_user(&self, user_id: &UserId<Self>) -> Result<Option<Self::User>, Self::Error> {
         let user = sqlx::query_as("SELECT * FROM user where id = ?")
             .bind(user_id)
             .fetch_optional(&self.db)

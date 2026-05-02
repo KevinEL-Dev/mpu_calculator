@@ -99,6 +99,7 @@ pub async fn login() -> Markup {
             br;
             input type="password" id="password" name="password";
             br;
+            input type="hidden" name="next" value="{{next}}" {}
             input type="submit" value="Submit";
         }
         div id="result" {}
